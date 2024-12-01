@@ -30,3 +30,5 @@ characters as possible within reason, focusing on concise (not readable) code.
 ## Structure
 
 There will be a folder for each day's code. `main.cpp` should solve the problem.
+
+Although each part overlaps, I will make a folder for each part as I solve.
