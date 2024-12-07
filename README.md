@@ -32,3 +32,7 @@ characters as possible within reason, focusing on concise (not readable) code.
 There will be a folder for each day's code. `main.cpp` should solve the problem.
 
 Although each part overlaps, I will make a folder for each part as I solve.
+
+I screwed up my git-fu with day 4, and so that folder only has one piece of code.
+
+I will likely maintain one folder for each day moving forward, and have git commits track each part...
