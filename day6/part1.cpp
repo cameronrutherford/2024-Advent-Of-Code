@@ -4,7 +4,6 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include <set>
 
 void rotate_90(std::pair<int, int> &direction)
 {
@@ -58,7 +57,6 @@ bool make_move(int &result, std::pair<int ,int> &location, std::vector<std::vect
 int main() {
 
   int result = 1;
-  int real_result = 0;
   std::ifstream inputFile("input.txt");
 
   if (!inputFile.is_open())
@@ -95,51 +93,14 @@ int main() {
   std::pair<int, int> direction = {0, -1};
   std::pair<int, int> position = {x_pos, y_pos};
 
-  // Don't want to accidentally check the same element in the path twice
-  std::set<std::pair<int,int>> path;
-
   while (true)
   {
-    if(make_move(result, position, map, direction))
-    {
-      path.insert(position);
-    }
-    else
-    {
+    if(!make_move(result, position, map, direction))
       break;
-    }
-  }
-
-
-  for (auto square : path)
-  {
-    direction = {0, -1};
-    position = {x_pos, y_pos};
-    auto tmp = map;
-    tmp[square.second][square.first] = std::make_pair('#', false);
-    bool loop = true;
-    int length = 0;
-    while (length <= tmp.size() * tmp[0].size())
-    {
-      if(make_move(result, position, tmp, direction))
-      {
-        length++;
-      }
-      else
-      {
-        loop = false;
-        break;
-      }
-    }
-    if (loop)
-    {
-      real_result++;
-    }
-
   }
 
   inputFile.close();
 
-  std::cout << "Answer: " << real_result << std::endl;
+  std::cout << "Answer: " << result << std::endl;
   return 0;
 }
