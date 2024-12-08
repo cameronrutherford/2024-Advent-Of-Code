@@ -1,0 +1,4 @@
+rm -rf ./*.out
+Checking main.cpp ...
+./main.out
+Answer: 227615740238334
