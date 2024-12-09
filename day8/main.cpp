@@ -5,14 +5,17 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include <algorithm>
 
 int main() {
 
   long int result = 0;
-  std::ifstream inputFile("input-test.txt");
+  std::ifstream inputFile("input.txt");
 
+  // Stores all the grid squares to track existing anode squares
   std::vector<std::vector<std::pair<char, bool>>> map;
 
+  // Stores a map from each tower char to the list of grid squares
   std::map<char, std::vector<std::pair<int,int>>> towers;
 
   if (!inputFile.is_open())
@@ -43,6 +46,7 @@ int main() {
     y++;
   }
 
+  std::vector<std::pair<int,int>> anode_locations;
   // For each unique tower key
   for (const auto& [tower_char, locations] : towers)
   {
@@ -73,6 +77,7 @@ int main() {
             if (!map[anode.second][anode.first].second)
             {
               map[anode.second][anode.first].second = true;
+              anode_locations.push_back(std::make_pair(anode.first, anode.second));
               result++;
             }
           }
@@ -85,6 +90,21 @@ int main() {
 
   inputFile.close();
 
+  std::sort(anode_locations.begin(), anode_locations.end(),
+      [](const std::pair<int, int> &a, const std::pair<int, int> &b)
+      {
+        if (a.first == b.first)
+        {
+          return a.second < b.second;
+        }
+        else {
+          return a.first < b.first;
+        }
+      });
+  for (auto anode : anode_locations)
+  {
+    std::cout << "Anode at : (" << anode.first << ", " << anode.second << ")\n";
+  }
   std::cout << "Answer: " << result << std::endl;
   return 0;
 }
