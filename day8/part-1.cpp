@@ -5,6 +5,7 @@
 #include <vector>
 #include <map>
 #include <utility>
+#include <algorithm>
 
 int main() {
 
@@ -61,32 +62,24 @@ int main() {
         int y_dist = locations[i].second - locations[j].second;
 
         std::vector<std::pair<int,int>> anodes;
+        int x1 = locations[i].first + x_dist;
+        int y1 = locations[i].second + y_dist;
+        anodes.push_back(std::make_pair(x1, y1));
 
-        int x1 = locations[i].first;
-        int y1 = locations[i].second;
-        int x2 = locations[j].first;
-        int y2 = locations[j].second;
-
-        while((x1 >= 0 && x1 < map[0].size() && y1 >= 0 && y1 < map.size())) 
-        {
-          anodes.push_back(std::make_pair(x1, y1));
-          x1 += x_dist;
-          y1 += y_dist;
-        }
-        while (x2 >= 0 && x2 < map[0].size() && y2 >= 0 && y2 < map.size())
-        {
-          anodes.push_back(std::make_pair(x2, y2));
-          x2 -= x_dist;
-          y2 -= y_dist;
-        }
+        int x2 = locations[j].first - x_dist;
+        int y2 = locations[j].second - y_dist;
+        anodes.push_back(std::make_pair(x2, y2));
 
         for (auto anode : anodes)
         {
-          if (!map[anode.second][anode.first].second)
+          if (anode.first >= 0 && anode.first < map[0].size() && anode.second >= 0 && anode.second < map.size())
           {
-            map[anode.second][anode.first].second = true;
-            anode_locations.push_back(std::make_pair(anode.first, anode.second));
-            result++;
+            if (!map[anode.second][anode.first].second)
+            {
+              map[anode.second][anode.first].second = true;
+              anode_locations.push_back(std::make_pair(anode.first, anode.second));
+              result++;
+            }
           }
         }
       }
@@ -97,6 +90,21 @@ int main() {
 
   inputFile.close();
 
+  std::sort(anode_locations.begin(), anode_locations.end(),
+      [](const std::pair<int, int> &a, const std::pair<int, int> &b)
+      {
+        if (a.first == b.first)
+        {
+          return a.second < b.second;
+        }
+        else {
+          return a.first < b.first;
+        }
+      });
+  for (auto anode : anode_locations)
+  {
+    std::cout << "Anode at : (" << anode.first << ", " << anode.second << ")\n";
+  }
   std::cout << "Answer: " << result << std::endl;
   return 0;
 }
