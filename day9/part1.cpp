@@ -1,11 +1,8 @@
 #include <iostream>
-#include <format>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <cassert>
-#include <limits.h>
 
 int main() {
 
@@ -48,59 +45,30 @@ int main() {
     file = !file;
   }
 
-  int curr_min = INT_MAX;
-
+  int last_free_space = 0;
   for (int i = filesystem.size() - 1; i >= 0; i--)
   {
     if (filesystem[i] == -1)
       continue;
 
-    // Get the length of the current file
-    int curr = filesystem[i];
-    if (curr < curr_min)
+    // Get the next free space, and swap from the end
+    for (;;)
     {
-      std::cout << std::format("curr = {}, curr_min = {}\n", curr, curr_min);
-      curr_min = curr;
-    }
-    else
-    {
-      continue;
-    }
-    int len = 0;
-    for (int j = i; j >= 0; j--)
-    {
-      if (filesystem[j] == curr)
-      {
-        len++;
-      }
-      else
+      if(filesystem[last_free_space] == -1)
       {
         break;
       }
+      last_free_space++;
     }
-    // Try each new free space, through to the current file
-    for (int j = 0; j <= i - 2 * len; j++)
+
+    if (last_free_space > i)
     {
-      if (filesystem[j] == -1)
-      {
-        bool flg = true;
-        for (int k = j; k < j + len; k++)
-        {
-          if (filesystem[k] != -1)
-          {
-            flg = false;
-            break;
-          }
-        }
-        if(flg)
-        {
-          std::swap_ranges(filesystem.begin() + i - len + 1, filesystem.begin() + i + 1, filesystem.begin() + j);
-          break;
-        }
-      }
+      break;
     }
-    // Move past the current file block since that failed
-    i -= len - 1;
+
+    std::swap(filesystem[i], filesystem[last_free_space]);
+    last_free_space++;
+
   }
 
 
@@ -108,7 +76,7 @@ int main() {
   {
     if (filesystem[i] == -1)
     {
-      continue;
+      break;
     }
     result += i * filesystem[i];
   }
