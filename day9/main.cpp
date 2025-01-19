@@ -4,13 +4,15 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <iterator>
+#include <ranges>
 #include <cassert>
 #include <limits.h>
 
 int main() {
 
   long int result = 0;
-  std::ifstream inputFile("input.txt");
+  std::ifstream inputFile("chatter-test.txt");
 
   if (!inputFile.is_open())
   {
@@ -24,11 +26,14 @@ int main() {
 
   std::vector<char> data(line.begin(), line.end());
 
-  std::vector<int> filesystem;
+  // TODO: consider reformatting to use std:pair<int, int>
+  // That way we track the file
+  std::vector<std::pair<int, int>> filesystem;
 
   bool file = true;
   int id = 0;
 
+  // Populating the filesystem with either the fileID or -1 for .
   for (auto c : data)
   {
     int curr_file;
@@ -41,81 +46,82 @@ int main() {
     {
       curr_file = -1;
     }
-    for(int i = 0; i < c - '0'; i++)
-    {
-      filesystem.push_back(curr_file);
-    }
+    filesystem.push_back(std::make_pair(curr_file, c - '0'));
     file = !file;
   }
 
-  int curr_min = INT_MAX;
-
-  for (int i = filesystem.size() - 1; i >= 0; i--)
+  for (auto i : filesystem)
   {
-    if (filesystem[i] == -1)
-      continue;
+    std::string to_print = (i.first == -1) ? "." : std::to_string(i.first);
+    for (const int j : std::views::iota(0,i.second))
+    {
+      std::cout << to_print;
+    }
+  }
+  std::cout << std::endl;
 
-    // Get the length of the current file
-    int curr = filesystem[i];
-    if (curr < curr_min)
+  // Loop over all files in reverse
+  for (auto& x : filesystem | std::views::reverse | std::views::filter([](const std::pair<int,int> ele) { return ele.first != -1; }))
+  {
+    // Iterate over the gaps in the system incrementally
+    for(auto& y : filesystem |
+        // Only if the gap is earlier in the filesystem than the file
+        std::views::filter([&](const std::pair<int,int> ele)
+          {
+            if(ele.first != -1)
+              return false;
+
+            for (auto test : filesystem)
+            {
+              if(test == ele)
+                return true;
+              if(test == x)
+                return false;
+            }
+          })
+      )
     {
-      std::cout << std::format("curr = {}, curr_min = {}\n", curr, curr_min);
-      curr_min = curr;
-    }
-    else
-    {
-      continue;
-    }
-    int len = 0;
-    for (int j = i; j >= 0; j--)
-    {
-      if (filesystem[j] == curr)
+      // If the gap is big enough, move the chunk
+      if (x.second < y.second)
       {
-        len++;
+        // int size_remaining_after_move = y.second - x.second;
+        // TODO
       }
-      else
+      // If the gap is precise, just swap
+      else if (x.second == y.second)
       {
+        std::cout << std::format("Trying to swap {} and {}\n", x.first, y.first);
+        // Maybe this doesn't work
+        auto tmp = x.first;
+        x.first = y.first;
+        y.first = std::move(tmp);
         break;
       }
     }
-    // Try each new free space, through to the current file
-    for (int j = 0; j <= i - 2 * len; j++)
-    {
-      if (filesystem[j] == -1)
-      {
-        bool flg = true;
-        for (int k = j; k < j + len; k++)
-        {
-          if (filesystem[k] != -1)
-          {
-            flg = false;
-            break;
-          }
-        }
-        if(flg)
-        {
-          std::swap_ranges(filesystem.begin() + i - len + 1, filesystem.begin() + i + 1, filesystem.begin() + j);
-          break;
-        }
-      }
-    }
-    // Move past the current file block since that failed
-    i -= len - 1;
+
   }
 
-
-  for (int i = 0; i < filesystem.size(); i++)
+  int index_counter = 0;
+  for (auto x : filesystem)
   {
-    if (filesystem[i] == -1)
+    if (x.first == -1)
     {
+      index_counter += x.second;
       continue;
     }
-    result += i * filesystem[i];
+    for (int i = 0; i < x.second; i++)
+    {
+      result += index_counter * x.first;
+      index_counter++;
+    }
   }
   for (auto i : filesystem)
   {
-    std::string to_print = (i == -1) ? "." : std::to_string(i);
-    std::cout << to_print;
+    std::string to_print = (i.first == -1) ? "." : std::to_string(i.first);
+    for (const int j : std::views::iota(0,i.second))
+    {
+      std::cout << to_print;
+    }
   }
 
   inputFile.close();
