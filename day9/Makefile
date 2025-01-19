@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -O0 -g -Wall -std=c++20
+CXXFLAGS := -O0 -g -Wall -std=c++23
 
 clean:
 	rm -rf ./*.out
@@ -14,4 +14,4 @@ check: main.cpp
 main: main.out
 	./$<
 
-all: clean check main.out main
+all: clean main.out main

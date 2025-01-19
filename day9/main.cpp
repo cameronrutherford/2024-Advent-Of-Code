@@ -61,31 +61,67 @@ int main() {
   std::cout << std::endl;
 
   // Loop over all files in reverse
-  for (auto& x : filesystem | std::views::reverse | std::views::filter([](const std::pair<int,int> ele) { return ele.first != -1; }))
+  for (auto const [x_idx, x] : filesystem | std::views::enumerate | std::views::reverse)
   {
-    // Iterate over the gaps in the system incrementally
-    for(auto& y : filesystem |
-        // Only if the gap is earlier in the filesystem than the file
-        std::views::filter([&](const std::pair<int,int> ele)
-          {
-            if(ele.first != -1)
-              return false;
-
-            for (auto test : filesystem)
-            {
-              if(test == ele)
-                return true;
-              if(test == x)
-                return false;
-            }
-          })
-      )
+    if(x.first == -1)
     {
+      continue;
+    }
+    // Iterate over the gaps in the system incrementally
+    for(auto const [y_idx, y] : filesystem | std::views::enumerate)
+    {
+      if (y.first != -1)
+      {
+        continue;
+      }
+      bool valid = true;
+      for (auto test : filesystem)
+      {
+        if(test == y)
+        {
+          valid = true;
+          break;
+        }
+        if(test == x)
+        {
+          valid = false;
+          break;
+        }
+      }
+      if(!valid) continue;
       // If the gap is big enough, move the chunk
       if (x.second < y.second)
       {
-        // int size_remaining_after_move = y.second - x.second;
-        // TODO
+        int size_remaining_after_move = y.second - x.second;
+
+        filesystem.insert(filesystem.begin() + y_idx, x);
+        y.second -= size_remaining_after_move;
+
+        // Fill the swapped file with -1s and clear
+        x.first = -1;
+
+        // "Compress" the empty spaces
+        bool remove_prior = false;
+        bool remove_next = false;
+        if (filesystem[x_idx - 1].first == -1)
+        {
+          x.second += filesystem[x_idx - 1].second;
+          remove_prior = true;
+        }
+        if (filesystem[x_idx + 1].first == -1)
+        {
+          x.second += filesystem[x_idx + 1].second;
+          remove_next = true;
+        }
+        if(remove_next)
+        {
+          filesystem.erase(filesystem.begin() + x_idx + 1);
+        }
+        if(remove_prior)
+        {
+          filesystem.erase(filesystem.begin() + x_idx - 1);
+        }
+
       }
       // If the gap is precise, just swap
       else if (x.second == y.second)
