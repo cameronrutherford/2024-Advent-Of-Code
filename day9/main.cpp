@@ -26,8 +26,6 @@ int main() {
 
   std::vector<char> data(line.begin(), line.end());
 
-  // TODO: consider reformatting to use std:pair<int, int>
-  // That way we track the file
   std::vector<std::pair<int, int>> filesystem;
   bool file = true;
   int id = 0;
@@ -48,16 +46,6 @@ int main() {
     filesystem.push_back(std::make_pair(curr_file, c - '0'));
     file = !file;
   }
-
-  for (auto i : filesystem)
-  {
-    std::string to_print = (i.first == -1) ? "." : std::to_string(i.first);
-    for (const int _ : std::views::iota(0,i.second))
-    {
-      std::cout << to_print;
-    }
-  }
-  std::cout << std::endl;
 
   // Loop over all files in reverse
   for (auto const [x_idx, x] : filesystem | std::views::enumerate |
@@ -88,7 +76,6 @@ int main() {
       // If the gap is big enough, move the chunk
       if (x.second < y.second)
       {
-        std::cout << std::format("Trying to swap {} and {}\n", x.first, y.first);
         int size_remaining_after_move = y.second - x.second;
 
         y.second -= size_remaining_after_move + 1;
@@ -127,25 +114,13 @@ int main() {
       // If the gap is precise, just swap
       else if (x.second == y.second)
       {
-        std::cout << std::format("Trying to swap {} and {}\n", x.first, y.first);
         // Maybe this doesn't work
         auto tmp = x.first;
         x.first = y.first;
         y.first = std::move(tmp);
         break;
       }
-
     }
-    // DEBUGGING
-    for (auto i : filesystem)
-    {
-      std::string to_print = (i.first == -1) ? "." : std::to_string(i.first);
-      for (const int _ : std::views::iota(0,i.second))
-      {
-        std::cout << to_print;
-      }
-    }
-    std::cout << std::endl;
   }
 
   int index_counter = 0;
@@ -160,14 +135,6 @@ int main() {
     {
       result += index_counter * x.first;
       index_counter++;
-    }
-  }
-  for (auto i : filesystem)
-  {
-    std::string to_print = (i.first == -1) ? "." : std::to_string(i.first);
-    for (const int _ : std::views::iota(0,i.second))
-    {
-      std::cout << to_print;
     }
   }
 
