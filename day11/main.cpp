@@ -7,6 +7,8 @@
 #include <ranges>
 #include <algorithm>
 
+// TODO: Refactor to a set of stones, and de-duplicate
+//       Also don't divide stones as we want to maximize de-duplicaiton
 void blink(std::vector<long>& stones)
 {
   for (auto const& [stone_idx, stone] : stones | std::views::enumerate | std::views::reverse)
@@ -34,6 +36,8 @@ void blink(std::vector<long>& stones)
 int main() {
   std::ifstream inputFile("input.txt");
 
+  long int result = 0;
+
   if (!inputFile.is_open())
   {
     std::cerr << "Error opening file!" << std::endl;
@@ -52,23 +56,18 @@ int main() {
 
   for (auto const& [stone_idx, stone] : stones | std::views::enumerate)
   {
-    std::cout << std::format("{} ", stone);
+    std::vector<long> single_stone = {stone};
+    for (auto i : std::views::iota(0, 75))
+    {
+      std::cout <<  std::format("{} stones after {} blinks on stone {}\n", single_stone.size(), i, stone_idx);
+      blink(single_stone);
+    }
+    result += single_stone.size();
+    std::cout << std::format("Result now {} after blinking {} stone\n", result, stone_idx);
   }
-  std::cout << std::endl;
-
-  for (auto i : std::views::iota(0, 25))
-    blink(stones);
-
-  std::cout << "After 25 blinks\n";
-
-  for (auto const& [stone_idx, stone] : stones | std::views::enumerate)
-  {
-    std::cout << std::format("{} ", stone);
-  }
-  std::cout << std::endl;
 
   inputFile.close();
 
-  std::cout << "\nAnswer: " << stones.size() << std::endl;
+  std::cout << "\nAnswer: " << result << std::endl;
   return 0;
 }
