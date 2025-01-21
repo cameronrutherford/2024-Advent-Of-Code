@@ -8,11 +8,12 @@
 #include <ranges>
 #include <cassert>
 #include <limits.h>
+#include <set>
 
 int main() {
 
   long int result = 0;
-  std::ifstream inputFile("input-test.txt");
+  std::ifstream inputFile("input.txt");
 
   if (!inputFile.is_open())
   {
@@ -27,6 +28,7 @@ int main() {
   std::vector<char> data(line.begin(), line.end());
 
   std::vector<std::pair<int, int>> filesystem;
+
   bool file = true;
   int id = 0;
 
@@ -47,73 +49,101 @@ int main() {
     file = !file;
   }
 
+  std::set<int> seen;
+
+  // for (auto i : filesystem)
+  // {
+  //   std::string to_print = (i.first == -1) ? "." : std::to_string(i.first);
+  //   for (const int j : std::views::iota(0,i.second))
+  //   {
+  //     std::cout << to_print;
+  //   }
+  // }
+  // std::cout << std::endl;
+
   // Loop over all files in reverse
-  for (auto const [x_idx, x] : filesystem | std::views::enumerate |
-      std::views::filter([](auto pair) -> bool { return std::get<1>(pair).first != -1; }) | std::views::reverse)
+  for (auto const [x_idx, x] : filesystem | std::views::enumerate | std::views::reverse)
   {
+    if(x.first == -1)
+      continue;
+
+    if(seen.contains(x.first))
+      continue;
+    else
+      seen.insert(x.first);
+
+    // std::cout << std::format("Processing file {}\n", x.first);
+    // for (auto i : filesystem)
+    // {
+    //   std::string to_print = (i.first == -1) ? "." : std::to_string(i.first);
+    //   for (const int j : std::views::iota(0,i.second))
+    //   {
+    //     std::cout << to_print;
+    //   }
+    // }
+    // std::cout << std::endl;
+    //
+    //
+
     // Iterate over the gaps in the system incrementally
-    for(auto const [y_idx, y] : filesystem |
-        std::views::enumerate |
-        // Only if the gap is earlier in the filesystem than the file
-        std::views::filter([&](auto&& pair)
-          {
-            auto ele = std::get<1>(pair);
-            if (ele.first != -1)
-            {
-              return false;
-            }
-            for (auto test : filesystem)
-            {
-              if(test == ele)
-                return true;
-              if(test == x)
-                return false;
-            }
-            return false;
-          })
-      )
+    for(auto const [y_idx, y] : filesystem | std::views::enumerate)
     {
+      if (y.first != -1)
+        continue;
+      bool valid = true;
+      if (y_idx > x_idx)
+        valid = false;
+      if(!valid) continue;
       // If the gap is big enough, move the chunk
       if (x.second < y.second)
       {
         int size_remaining_after_move = y.second - x.second;
+        y.second = size_remaining_after_move;
 
-        y.second -= size_remaining_after_move + 1;
-
-        auto x_val = x.first;
+        filesystem.insert(filesystem.begin() + y_idx, x);
 
         // Fill the swapped file with -1s and clear
-        filesystem[x_idx].first = -1;
-        x.first = -1;
-
-        filesystem.insert(filesystem.begin() + y_idx, std::make_pair(x_val, x.second));
+        filesystem[x_idx + 1].first = -1;
 
         // "Compress" the empty spaces
         bool remove_prior = false;
         bool remove_next = false;
-        if (filesystem[x_idx - 1].first == -1)
+        if (filesystem[x_idx].first == -1)
         {
-          x.second += filesystem[x_idx - 1].second;
+          filesystem[x_idx + 1].second += filesystem[x_idx].second;
           remove_prior = true;
         }
-        if (x_idx + 1 < filesystem.size() && filesystem[x_idx + 1].first == -1)
+        if (filesystem[x_idx + 2].first == -1)
         {
-          x.second += filesystem[x_idx + 1].second;
+          filesystem[x_idx + 1].second += filesystem[x_idx + 2].second;
           remove_next = true;
         }
         if(remove_next)
         {
-          filesystem.erase(filesystem.begin() + x_idx + 1);
+          filesystem.erase(filesystem.begin() + x_idx + 2);
         }
         if(remove_prior)
         {
-          filesystem.erase(filesystem.begin() + x_idx - 1);
+          filesystem.erase(filesystem.begin() + x_idx);
         }
+        // std::cout << std::format("Swapped {} and {}\n", x.first, y.first);
+        // for (auto i : filesystem)
+        // {
+        //   std::string to_print = (i.first == -1) ? "." : std::to_string(i.first);
+        //   for (const int j : std::views::iota(0,i.second))
+        //   {
+        //     std::cout << to_print;
+        //   }
+        // }
+        // std::cout << std::endl;
+
         break;
+
       }
       // If the gap is precise, just swap
       else if (x.second == y.second)
       {
+        // std::cout << std::format("Trying to swap {} and {}\n", x.first, y.first);
         // Maybe this doesn't work
         auto tmp = x.first;
         x.first = y.first;
@@ -121,6 +151,7 @@ int main() {
         break;
       }
     }
+
   }
 
   int index_counter = 0;
@@ -137,6 +168,14 @@ int main() {
       index_counter++;
     }
   }
+  // for (auto i : filesystem)
+  // {
+  //   std::string to_print = (i.first == -1) ? "." : std::to_string(i.first);
+  //   for (const int j : std::views::iota(0,i.second))
+  //   {
+  //     std::cout << to_print;
+  //   }
+  // }
 
   inputFile.close();
 
