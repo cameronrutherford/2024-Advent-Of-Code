@@ -11,59 +11,23 @@
 #include <limits.h>
 #include <set>
 
-std::set<std::pair<int,int>> num_reachable_nines(const std::vector<std::vector<int>>& map, std::pair<int, int> coords, int curr_val = 0)
+int num_paths_to_nine(const std::vector<std::vector<int>>& map, std::pair<int, int> coords, int curr_val = 0)
 {
   if(curr_val == 9)
-    return {coords};
+    return 1;
 
-  std::set<std::pair<int,int>> reachable_nines = {};
+  int ret_val = 0;
 
   if(coords.first + 1 < map.size() && map[coords.first + 1][coords.second] == curr_val + 1)
-  {
-    auto extra_nines = num_reachable_nines(map, std::make_pair(coords.first + 1, coords.second), curr_val + 1);
-    for (auto nine : extra_nines)
-    {
-      if(!reachable_nines.contains(nine))
-      {
-        reachable_nines.insert(nine);
-      }
-    }
-  }
+    ret_val += num_paths_to_nine(map, std::make_pair(coords.first + 1, coords.second), curr_val + 1);
   if(coords.first - 1 >= 0 && map[coords.first - 1][coords.second] == curr_val + 1)
-  {
-    auto extra_nines = num_reachable_nines(map, std::make_pair(coords.first - 1, coords.second), curr_val + 1);
-    for (auto nine : extra_nines)
-    {
-      if(!reachable_nines.contains(nine))
-      {
-        reachable_nines.insert(nine);
-      }
-    }
-  }
+    ret_val += num_paths_to_nine(map, std::make_pair(coords.first - 1, coords.second), curr_val + 1);
   if(coords.second + 1 < map[0].size() && map[coords.first][coords.second + 1] == curr_val + 1)
-  {
-    auto extra_nines = num_reachable_nines(map, std::make_pair(coords.first, coords.second + 1), curr_val + 1);
-    for (auto nine : extra_nines)
-    {
-      if(!reachable_nines.contains(nine))
-      {
-        reachable_nines.insert(nine);
-      }
-    }
-  }
+    ret_val += num_paths_to_nine(map, std::make_pair(coords.first, coords.second + 1), curr_val + 1);
   if(coords.second - 1 >= 0 && map[coords.first][coords.second - 1] == curr_val + 1)
-  {
-    auto extra_nines = num_reachable_nines(map, std::make_pair(coords.first, coords.second - 1), curr_val + 1);
-    for (auto nine : extra_nines)
-    {
-      if(!reachable_nines.contains(nine))
-      {
-        reachable_nines.insert(nine);
-      }
-    }
-  }
+    ret_val += num_paths_to_nine(map, std::make_pair(coords.first, coords.second - 1), curr_val + 1);
 
-  return reachable_nines;
+  return ret_val;
 }
 
 int main() {
@@ -93,9 +57,9 @@ int main() {
     {
       if(ele == 0)
       {
-        auto reachable_nines = num_reachable_nines(map, std::make_pair(row_idx,col_idx));
-        std::cout << std::format("Trailhead at ({},{}) has a score of {}\n", row_idx, col_idx, reachable_nines.size());
-        result += reachable_nines.size();
+        int score_of_trailhead = num_paths_to_nine(map, std::make_pair(row_idx,col_idx));
+        std::cout << std::format("Trailhead at ({},{}) has a score of {}\n", row_idx, col_idx, score_of_trailhead);
+        result += score_of_trailhead;
       }
     }
   }
